@@ -9,7 +9,7 @@ These templates creates the Template (or VM) directly on the vSphere server and 
 # Content: #
 
 * [autounattend.xml](./autounattend.xml) --> Answer file for unattended Windows setup
-* [credentials.json](./credentials.json) --> Credential file
+* [windows2019.json](./windows2019.json) --> Windows Server 2019 Packer JSON file Base
 * [windows2019.json](./windows2019.json) --> Windows Server 2019 Packer JSON file Base
 
 Scripts:
