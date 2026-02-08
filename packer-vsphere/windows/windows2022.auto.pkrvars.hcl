@@ -1,0 +1,11 @@
+vsphere-datacenter  = "homelab-dc"
+vsphere-cluster     = "homelab-cluster"
+vsphere-network     = "VM Network"
+vsphere-datastore   = "datastore1"
+vsphere-folder      = "VM-Templates-Packer"
+vm-name             = "Win2022-Template"
+vm-cpu-num          = 2
+vm-mem-size         = 4096
+os-disk-size        = 40960
+disk-thin-provision = true
+os_iso_path         = "[datastore1] windows-server-2022.iso"

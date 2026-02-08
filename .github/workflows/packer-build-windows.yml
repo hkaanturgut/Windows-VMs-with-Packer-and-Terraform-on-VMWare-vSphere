@@ -1,0 +1,58 @@
+name: Build Windows Packer Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      windows_version:
+        description: "Windows template version suffix (e.g., 2022)"
+        required: true
+        default: "2022"
+      var_files:
+        description: "Space-separated list of Packer var-files"
+        required: false
+        default: "packer-vsphere/windows/windows2022.auto.pkrvars.hcl"
+
+jobs:
+  packer-build-windows:
+    runs-on: ["self-hosted", "Windows"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Packer installation
+        shell: powershell
+        run: packer --version
+
+      - name: Set image variables
+        id: set_vars
+        shell: powershell
+        run: |
+          $version = "${{ github.event.inputs.windows_version }}"
+          Write-Output "PACKER_FILE=packer-vsphere/windows/windows$version.pkr.hcl" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Write-Output "VAR_FILES=${{ github.event.inputs.var_files }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build Packer image (Windows)
+        shell: powershell
+        env:
+          VSPHERE_USER: ${{ secrets.VSPHERE_USER }}
+          VSPHERE_PASSWORD: ${{ secrets.VSPHERE_PASSWORD }}
+          VSPHERE_SERVER: ${{ secrets.VSPHERE_SERVER }}
+          WINADMIN_PASSWORD: ${{ secrets.WINADMIN_PASSWORD }}
+        run: |
+          $packerArgs = @('-force')
+          if ($env:VAR_FILES) {
+            foreach ($file in $env:VAR_FILES.Split(" ")) {
+              if ($file) { $packerArgs += "-var-file=$file" }
+            }
+          }
+          # Add only the four defined sensitive variables as -var arguments
+          $packerArgs += "-var vsphere-user=$env:VSPHERE_USER"
+          $packerArgs += "-var vsphere-password=$env:VSPHERE_PASSWORD"
+          $packerArgs += "-var vsphere-server=$env:VSPHERE_SERVER"
+          $packerArgs += "-var winadmin-password=$env:WINADMIN_PASSWORD"
+          $packerArgs += $env:PACKER_FILE
+          Write-Host "Running: packer init $env:PACKER_FILE"
+          packer init $env:PACKER_FILE
+          Write-Host "Running: packer build $($packerArgs -join ' ')"
+          & packer build @packerArgs
