@@ -84,11 +84,11 @@ jobs:
           Write-Host "----- END TF PLAN (tfplan) -----"
 
       - name: Terraform Apply
-        if: github.event.inputs.run_apply == true
+        if: github.event.inputs.run_apply == 'true'
         run: terraform apply -no-color -auto-approve tfplan
 
       - name: Show Terraform Outputs
-        if: github.event.inputs.run_apply == true
+        if: github.event.inputs.run_apply == 'true'
         run: |
           Write-Host "--- BEGIN TERRAFORM OUTPUT ---"
           terraform output -no-color
