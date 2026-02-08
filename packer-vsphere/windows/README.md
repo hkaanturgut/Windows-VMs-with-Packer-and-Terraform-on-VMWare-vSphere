@@ -1,16 +1,14 @@
-# Packer template for Windows Server 2019 using vSphere-ISO provider
+# Packer template for Windows Server 2022 using vSphere-ISO provider
 
-## Note: this code is compatible with Packer v1.6.x or later. For Packer v1.5.x or previous versions use this [link](https://github.com/guillermo-musumeci/packer-vsphere-iso-windows) 
-
-This repository contains **HashiCorp Packer** templates to deploy **Windows Server 2019** in **VMware vSphere (with vCenter)**, using the **vsphere-iso** builder.
+This repository contains **HashiCorp Packer** templates to deploy **Windows Server 2022** in **VMware vSphere (with vCenter)**, using the **vsphere-iso** builder.
 
 These templates creates the Template (or VM) directly on the vSphere server and install the latest VMware Tools.
 
 # Content: #
 
 * [autounattend.xml](./autounattend.xml) --> Answer file for unattended Windows setup
-* [windows2019.json](./windows2019.json) --> Windows Server 2019 Packer JSON file Base
-* [windows2019.json](./windows2019.json) --> Windows Server 2019 Packer JSON file Base
+* [windows2022.json](./windows2022.json) --> Windows Server 2022 Packer JSON file Base
+* [windows2022.json](./windows2022.json) --> Windows Server 2022 Packer JSON file Base
 
 Scripts:
 * [scripts/disable-network-discovery.cmd](./scripts/disable-network-discovery.cmd) --> Script to Disable network discovery
@@ -29,4 +27,4 @@ Tested with **VMware ESX 6.7** and **VMware ESX 7.0** | User: Administrator | Pa
 
 # How to use: #
 
-execute **packer build win2019.base.json**
+execute **packer build win2022.base.json**
