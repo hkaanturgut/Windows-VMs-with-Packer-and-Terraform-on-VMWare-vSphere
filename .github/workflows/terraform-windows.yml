@@ -1,0 +1,95 @@
+name: Terraform vSphere Deploy (Windows)
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_apply:
+        description: "Run terraform apply?"
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  terraform-windows:
+    runs-on: ["self-hosted", "Windows", "X64"]
+
+    env:
+      VSPHERE_USER: ${{ secrets.VSPHERE_USER }}
+      VSPHERE_PASSWORD: ${{ secrets.VSPHERE_PASSWORD }}
+      VSPHERE_SERVER: ${{ secrets.VSPHERE_SERVER }}
+      TF_IN_AUTOMATION: "true"
+      TF_INPUT: "false"
+      TF_VAR_vsphere_user: ${{ secrets.VSPHERE_USER }}
+      TF_VAR_vsphere_password: ${{ secrets.VSPHERE_PASSWORD }}
+      TF_VAR_vsphere_server: ${{ secrets.VSPHERE_SERVER }}
+      TF_VAR_windows_admin_username: ${{ secrets.WINDOWS_ADMIN_USERNAME }}
+      TF_VAR_windows_admin_password: ${{ secrets.WINDOWS_ADMIN_PASSWORD }}
+
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.6
+          terraform_wrapper: false
+
+      - name: Debug
+        run: |
+          Write-Host "Runner OS: $env:RUNNER_OS"
+          terraform version
+          Get-Command terraform | Format-List *
+          Write-Host "PATH:"
+          Write-Host $env:PATH
+          Write-Host "Workspace: $pwd"
+          Get-ChildItem -Force
+
+      - name: Configure Terraform Cloud credentials (Windows)
+        env:
+          TF_API_TOKEN: ${{ secrets.TF_API_TOKEN }}
+        run: |
+          $dir = Join-Path $env:APPDATA "terraform.d"
+          New-Item -ItemType Directory -Force -Path $dir | Out-Null
+          $path = Join-Path $dir "credentials.tfrc.json"
+          $json = @"
+          {
+            "credentials": {
+              "app.terraform.io": {
+                "token": "$($env:TF_API_TOKEN)"
+              }
+            }
+          }
+          "@
+          $json | Out-File -FilePath $path -Encoding ascii
+          Write-Host "Terraform Cloud credentials file created at: $path"
+
+      - name: Terraform Init
+        run: terraform init -no-color
+
+      - name: Terraform Validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        run: terraform plan -no-color -out=tfplan
+
+      - name: Show Plan
+        run: |
+          Write-Host "----- BEGIN TF PLAN (tfplan) -----"
+          terraform show -no-color tfplan
+          Write-Host "----- END TF PLAN (tfplan) -----"
+
+      - name: Terraform Apply
+        if: github.event.inputs.run_apply == true
+        run: terraform apply -no-color -auto-approve tfplan
+
+      - name: Show Terraform Outputs
+        if: github.event.inputs.run_apply == true
+        run: |
+          Write-Host "--- BEGIN TERRAFORM OUTPUT ---"
+          terraform output -no-color
+          Write-Host "--- END TERRAFORM OUTPUT ---"
