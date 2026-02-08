@@ -6,38 +6,25 @@ on:
       os_type:
         description: 'Select OS and version'
         required: true
-        default: 'ubuntu-22.04'
+        default: 'windows-2022'
         type: choice
         options:
-          - ubuntu-22.04
           - windows-2022
 
 jobs:
   packer-build:
-    runs-on: ${{ startsWith(github.event.inputs.os_type, 'windows') && fromJson('["self-hosted","Windows"]') || fromJson('["self-hosted","ubuntu"]') }}
+     runs-on: ["self-hosted", "Windows"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Check for Packer installation (Windows)
-        if: startsWith(github.event.inputs.os_type, 'windows')
         shell: powershell
         run: |
-            packer --version
+          packer --version
 
-      - name: Set image variables (Ubuntu)
-        if: startsWith(github.event.inputs.os_type, 'ubuntu')
-        id: set_vars_ubuntu
-        shell: bash
-        run: |
-          OS_TYPE="${{ github.event.inputs.os_type }}"
-          VERSION="${OS_TYPE#ubuntu-}"
-          echo "PACKER_FILE=packer-vsphere/ubuntu/ubuntu-${VERSION}.pkr.hcl" >> $GITHUB_OUTPUT
-          echo "VAR_FILES=packer-vsphere/ubuntu/variables.pkrvars100GBdisk.hcl packer-vsphere/ubuntu/vsphere.pkrvars.hcl" >> $GITHUB_OUTPUT
-
-      - name: Set image variables (Windows)
-        if: startsWith(github.event.inputs.os_type, 'windows')
+      - name: Set image variables
         id: set_vars_windows
         shell: powershell
         run: |
@@ -46,8 +33,7 @@ jobs:
           Write-Output "PACKER_FILE=packer-vsphere/windows/windows$VERSION.pkr.hcl" | Out-File -FilePath $env:GITHUB_ENV -Append
           Write-Output "VAR_FILES=packer-vsphere/windows/windows$VERSION.auto.pkrvars.hcl" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Debug file existence (Windows)
-        if: startsWith(github.event.inputs.os_type, 'windows')
+      - name: Debug file existence
         shell: powershell
         run: |
           Write-Host "Listing files in packer-vsphere/windows:"
@@ -65,8 +51,7 @@ jobs:
             Write-Host "Var-file not found!"
           }
           
-      - name: Build Packer image (Windows)
-        if: startsWith(github.event.inputs.os_type, 'windows')
+      - name: Build Packer image
         shell: powershell
         env:
           VSPHERE_USER: ${{ secrets.VSPHERE_USER }}
@@ -84,7 +69,6 @@ jobs:
           }
 
           # IMPORTANT: -var must be two args: -var "key=value"
-          # Also IMPORTANT: variable names should use underscores in HCL: vsphere_user, etc.
           $packerArgs += @('-var', "vsphere-user=$env:VSPHERE_USER")
           $packerArgs += @('-var', "vsphere-password=$env:VSPHERE_PASSWORD")
           $packerArgs += @('-var', "vsphere-server=$env:VSPHERE_SERVER")
