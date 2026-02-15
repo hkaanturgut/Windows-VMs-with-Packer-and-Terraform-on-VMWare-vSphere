@@ -3,6 +3,12 @@
 
 This project provides a complete, automated workflow to build Windows Server VM templates using Packer and deploy them on VMware vSphere using Terraform. It includes ready-to-use GitHub Actions workflows for CI/CD automation.
 
+## Video Demo
+
+[![Watch the video](https://img.youtube.com/vi/3eEXcE1Ndb0/maxresdefault.jpg)](https://www.youtube.com/watch?v=3eEXcE1Ndb0))
+
+For more content, visit my YouTube channel: [https://www.youtube.com/@hkaanturgut)
+
 ---
 
 ## Table of Contents
